@@ -65,10 +65,12 @@ if has_missing.empty:
 else:
     print(has_missing.to_string())
 
-plt.figure(figsize=(12, 6))
-has_missing['Missing %'].plot(kind='bar', color='tomato')
-plt.title('Missing Values by Column (%)')
-plt.ylabel('Missing %')
+plt.figure(figsize=(8, 4))
+cols = missing_df[missing_df['Missing Count'] > 0].index.tolist()
+counts = missing_df[missing_df['Missing Count'] > 0]['Missing Count'].tolist()
+plt.bar(cols, counts, color='tomato')
+plt.title('Columns with Missing Values (Count)')
+plt.ylabel('Missing Count')
 plt.xlabel('Columns')
 plt.xticks(rotation=45, ha='right')
 plt.tight_layout()
@@ -88,11 +90,19 @@ print(f"Fatal     (1) : {target_counts[1]} ({target_pct[1]}%)")
 print(f"Non-Fatal (0) : {target_counts[0]} ({target_pct[0]}%)")
 
 plt.figure(figsize=(6, 4))
-target_counts.plot(kind='bar', color=['tomato', 'steelblue'])
-plt.title('Class Distribution (1=Fatal, 0=Non-Fatal)')
+classes = ['Non-Fatal (0)', 'Fatal (1)']
+counts = [target_counts[0], target_counts[1]]
+colors = ['steelblue', 'tomato']
+bars = plt.bar(classes, counts, color=colors)
+plt.title('Class Distribution')
 plt.xlabel('Class')
 plt.ylabel('Count')
-plt.xticks([0, 1], ['Fatal', 'Non-Fatal'], rotation=0)
+
+# Add count labels on top of each bar
+for bar, count in zip(bars, counts):
+    plt.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 1000,
+             f'{count:,}', ha='center', va='bottom', fontsize=10)
+
 plt.tight_layout()
 plt.savefig('plots/02_class_distribution.png')
 plt.show()
@@ -211,14 +221,14 @@ print(df['DIVISION'].value_counts().to_string())
 
 fig, axes = plt.subplots(1, 2, figsize=(16, 5))
 
-df['NEIGHBOURHOOD_158'].value_counts().head(10).plot(
+df[df['NEIGHBOURHOOD_158'] != 'NSA']['NEIGHBOURHOOD_158'].value_counts().head(10).plot(
     kind='bar', color='steelblue', ax=axes[0])
 axes[0].set_title('Top 10 Neighbourhoods')
 axes[0].set_xlabel('Neighbourhood')
 axes[0].set_ylabel('Count')
 axes[0].tick_params(axis='x', rotation=45)
 
-df['DIVISION'].value_counts().plot(
+df[df['DIVISION'] != 'NSA']['DIVISION'].value_counts().plot(
     kind='bar', color='steelblue', ax=axes[1])
 axes[1].set_title('Collisions by Division')
 axes[1].set_xlabel('Division')
