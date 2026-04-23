@@ -27,6 +27,13 @@ with open(MODEL_PATH, "rb") as f:
 print(f"[app.py] Model loaded from: {MODEL_PATH}")
 
 # ============================================================
+# DEMO THRESHOLD
+# Lower this if you want FATAL to appear more easily
+# 0.20 = 20%
+# ============================================================
+FATAL_THRESHOLD = 0.20
+
+# ============================================================
 # FEATURE DEFINITIONS
 # Match exactly what ksi_shared.py sends to the model
 # ============================================================
@@ -50,63 +57,67 @@ DIVISIONS = [
 YES_NO = ["YES", "NO"]
 
 
+def safe_float(value, default):
+    try:
+        if value is None or value == "":
+            return float(default)
+        return float(value)
+    except Exception:
+        return float(default)
+
+
 # ============================================================
 # ROUTES
 # ============================================================
 @app.route("/")
 def index():
-    """Render the prediction form."""
     return render_template(
         "index.html",
         months=MONTHS,
         days=DAYS,
         divisions=DIVISIONS,
         yes_no=YES_NO,
+        threshold=round(FATAL_THRESHOLD * 100, 2),
     )
 
 
 @app.route("/predict", methods=["POST"])
 def predict():
-    """
-    Accept form data or JSON, run model prediction, return result.
-    Supports both HTML form submission and Postman/API JSON calls.
-    """
     try:
-        # Support both JSON (Postman/API) and form (HTML frontend)
         if request.is_json:
-            data = request.get_json()
+            data = request.get_json() or {}
         else:
             data = request.form.to_dict()
 
-        # Build a single-row DataFrame matching the training features
+        occ_dow = data.get("OCC_DOW", "Monday")
+
         row = {
-            # Categorical
             "OCC_MONTH":  data.get("OCC_MONTH", "January"),
-            "OCC_DOW":    data.get("OCC_DOW",   "Monday"),
-            "DIVISION":   data.get("DIVISION",  "D11"),
-            "HOOD_158":   data.get("HOOD_158",  "1"),
-            "AUTOMOBILE": data.get("AUTOMOBILE","YES"),
-            "MOTORCYCLE": data.get("MOTORCYCLE","NO"),
+            "OCC_DOW":    occ_dow,
+            "DIVISION":   data.get("DIVISION", "D11"),
+            "HOOD_158":   str(data.get("HOOD_158", "1")),
+            "AUTOMOBILE": data.get("AUTOMOBILE", "YES"),
+            "MOTORCYCLE": data.get("MOTORCYCLE", "NO"),
             "PASSENGER":  data.get("PASSENGER", "NO"),
-            "BICYCLE":    data.get("BICYCLE",   "NO"),
-            "PEDESTRIAN": data.get("PEDESTRIAN","NO"),
-            # Numerical
-            "OCC_YEAR":   float(data.get("OCC_YEAR",  2024)),
-            "OCC_HOUR":   float(data.get("OCC_HOUR",  12)),
-            "LONG_WGS84": float(data.get("LONG_WGS84",-79.3832)),
-            "LAT_WGS84":  float(data.get("LAT_WGS84",  43.6532)),
-            "IS_WEEKEND":  1 if data.get("OCC_DOW", "Monday") in ["Saturday", "Sunday"] else 0,
+            "BICYCLE":    data.get("BICYCLE", "NO"),
+            "PEDESTRIAN": data.get("PEDESTRIAN", "NO"),
+            "OCC_YEAR":   safe_float(data.get("OCC_YEAR", 2024), 2024),
+            "OCC_HOUR":   safe_float(data.get("OCC_HOUR", 12), 12),
+            "LONG_WGS84": safe_float(data.get("LONG_WGS84", -79.3832), -79.3832),
+            "LAT_WGS84":  safe_float(data.get("LAT_WGS84", 43.6532), 43.6532),
+            "IS_WEEKEND": 1 if occ_dow in ["Saturday", "Sunday"] else 0,
         }
 
         input_df = pd.DataFrame([row])
 
-        prediction = int(model.predict(input_df)[0])
         probability = float(model.predict_proba(input_df)[0][1])
+        prediction = 1 if probability >= FATAL_THRESHOLD else 0
 
         result = {
             "prediction": prediction,
             "label": "FATAL" if prediction == 1 else "NON-FATAL",
             "probability": round(probability * 100, 2),
+            "threshold_used": round(FATAL_THRESHOLD * 100, 2),
             "message": (
                 "⚠️ High risk — this collision is predicted to be FATAL."
                 if prediction == 1
@@ -114,7 +125,6 @@ def predict():
             ),
         }
 
-        # Return JSON for API calls, render result page for form submissions
         if request.is_json:
             return jsonify(result)
         else:
@@ -124,6 +134,7 @@ def predict():
                 days=DAYS,
                 divisions=DIVISIONS,
                 yes_no=YES_NO,
+                threshold=round(FATAL_THRESHOLD * 100, 2),
                 result=result,
                 form_data=data,
             )
@@ -138,22 +149,24 @@ def predict():
             days=DAYS,
             divisions=DIVISIONS,
             yes_no=YES_NO,
+            threshold=round(FATAL_THRESHOLD * 100, 2),
             error=str(e),
         )
 
 
 @app.route("/health")
 def health():
-    """Health check endpoint — useful for Postman testing."""
-    return jsonify({"status": "ok", "model": str(MODEL_PATH.name)})
+    return jsonify({
+        "status": "ok",
+        "model": str(MODEL_PATH.name),
+        "fatal_threshold_percent": round(FATAL_THRESHOLD * 100, 2),
+    })
 
 
-# ============================================================
-# RUN
-# ============================================================
 if __name__ == "__main__":
     print("=" * 50)
     print("  KSI Collision Predictor — Flask API")
     print("  Open: http://127.0.0.1:5000")
+    print(f"  Fatal threshold: {FATAL_THRESHOLD:.2f}")
     print("=" * 50)
     app.run(debug=True, port=5000)
