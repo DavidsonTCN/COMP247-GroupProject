@@ -7,23 +7,22 @@
 
     <style>
       :root{
-        --bg0:#070A10;
-        --bg1:#0B1020;
-        --card:#0E162C;
-        --card2:#0C1426;
+        --bg0:#06070C;
+        --bg1:#090B12;
         --stroke:rgba(255,255,255,.10);
-        --stroke2:rgba(255,255,255,.14);
-        --text:#EAF0FF;
-        --muted:rgba(234,240,255,.70);
-        --muted2:rgba(234,240,255,.55);
-        --shadow: 0 18px 45px rgba(0,0,0,.55);
-        --shadow2: 0 8px 22px rgba(0,0,0,.35);
-        --yellow:#F7C948;
-        --yellow2:#F4B400;
-        --red:#FF3B3B;
-        --red2:#FF0F3A;
-        --ok:#2BE4A7;
-        --focus: rgba(247, 201, 72, .35);
+        --stroke2:rgba(255,255,255,.16);
+        --text:#F3F5FF;
+        --muted:rgba(243,245,255,.70);
+        --muted2:rgba(243,245,255,.55);
+        --shadow: 0 18px 45px rgba(0,0,0,.60);
+        --shadow2: 0 10px 26px rgba(0,0,0,.42);
+
+        /* Strong, clear accents */
+        --yellow:#FFD54A;
+        --yellow2:#FFB800;
+        --red:#FF2D2D;
+        --red2:#FF0048;
+        --focus: rgba(255, 213, 74, .42);
       }
 
       *{ box-sizing:border-box; }
@@ -33,9 +32,8 @@
         color:var(--text);
         font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
         background:
-          radial-gradient(900px 500px at 15% 10%, rgba(247,201,72,.12), transparent 60%),
-          radial-gradient(900px 600px at 88% 18%, rgba(255,15,58,.12), transparent 58%),
-          radial-gradient(1200px 900px at 45% 90%, rgba(90,108,255,.10), transparent 60%),
+          radial-gradient(1100px 620px at 14% 12%, rgba(255,213,74,.16), transparent 62%),
+          radial-gradient(1100px 720px at 90% 18%, rgba(255,0,72,.16), transparent 60%),
           linear-gradient(180deg, var(--bg0), var(--bg1));
       }
 
@@ -197,8 +195,8 @@
         gap: 10px;
         padding: 11px 14px;
         border-radius: 14px;
-        border: 1px solid rgba(247,201,72,.45);
-        background: linear-gradient(180deg, rgba(247,201,72,.18), rgba(247,201,72,.08));
+        border: 1px solid rgba(255,213,74,.55);
+        background: linear-gradient(180deg, rgba(255,213,74,.22), rgba(255,184,0,.10));
         color: var(--text);
         cursor:pointer;
         font-weight: 600;
@@ -206,7 +204,7 @@
         box-shadow: 0 12px 28px rgba(0,0,0,.35);
         transition: transform .06s ease, filter .15s ease, border-color .15s ease;
       }
-      .btn:hover{ filter: brightness(1.08); border-color: rgba(247,201,72,.65); }
+      .btn:hover{ filter: brightness(1.10); border-color: rgba(255,213,74,.78); }
       .btn:active{ transform: translateY(1px); }
 
       .btn.secondary{
@@ -230,13 +228,13 @@
         box-shadow: var(--shadow2);
       }
       .result.fatal{
-        border-color: rgba(255, 59, 59, .55);
-        background: radial-gradient(600px 260px at 20% 0%, rgba(255,59,59,.18), transparent 62%),
+        border-color: rgba(255, 45, 45, .70);
+        background: radial-gradient(720px 320px at 18% 0%, rgba(255,45,45,.26), transparent 62%),
                     rgba(255,255,255,.03);
       }
       .result.nonfatal{
-        border-color: rgba(247, 201, 72, .55);
-        background: radial-gradient(600px 260px at 20% 0%, rgba(247,201,72,.18), transparent 62%),
+        border-color: rgba(255, 213, 74, .70);
+        background: radial-gradient(720px 320px at 18% 0%, rgba(255,213,74,.26), transparent 62%),
                     rgba(255,255,255,.03);
       }
 
@@ -260,8 +258,8 @@
         font-size: 12px;
         text-transform: uppercase;
       }
-      .badge.fatal{ border-color: rgba(255,59,59,.6); color: var(--red); }
-      .badge.nonfatal{ border-color: rgba(247,201,72,.6); color: var(--yellow); }
+      .badge.fatal{ border-color: rgba(255,45,45,.75); color: var(--red); }
+      .badge.nonfatal{ border-color: rgba(255,213,74,.75); color: var(--yellow); }
 
       .prob{
         font-size: 12px;
