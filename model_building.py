@@ -1,10 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Wed Apr 22 18:22:45 2026
-
-@author: edwin
-"""
-
 # ============================================================
 # KSI_Deliverable3_ModelBuilding.py
 # COMP 247 – Deliverable 3: Predictive Model Building
@@ -64,6 +57,7 @@ from ksi_shared import (
     CV_FOLDS,
     build_pipeline,
     prepare_all,
+    get_tune_sample,
 )
 
 PLOTS_DIR = Path("plots")
@@ -80,6 +74,11 @@ print("=" * 60)
 X_train, X_test, y_train, y_test, X, y, df = prepare_all(Path(__file__))
 
 cv = StratifiedKFold(n_splits=CV_FOLDS, shuffle=True, random_state=RANDOM_STATE)
+
+# Sample used for all GridSearch / RandomizedSearch tuning.
+# Best params are found on this sample, then refit on full X_train.
+# This keeps tuning fast while still evaluating final models on full data.
+X_tune, y_tune = get_tune_sample(X_train, y_train)
 
 # ============================================================
 # 2. HELPER — evaluate any trained pipeline
@@ -203,9 +202,11 @@ lr_grid = GridSearchCV(
     },
     cv=cv, scoring="f1", n_jobs=-1, verbose=1,
 )
-lr_grid.fit(X_train, y_train)
+lr_grid.fit(X_tune, y_tune)
 print(f"  Best params : {lr_grid.best_params_}")
 print(f"  Best CV F1  : {lr_grid.best_score_:.4f}")
+# Refit best estimator on FULL training data before evaluation
+lr_grid.best_estimator_.fit(X_train, y_train)
 tuned_lr = evaluate("Logistic Regression (Tuned)",
                     lr_grid.best_estimator_, X_train, X_test, y_train, y_test)
 
@@ -225,9 +226,10 @@ dt_grid = GridSearchCV(
     },
     cv=cv, scoring="f1", n_jobs=-1, verbose=1,
 )
-dt_grid.fit(X_train, y_train)
+dt_grid.fit(X_tune, y_tune)
 print(f"  Best params : {dt_grid.best_params_}")
 print(f"  Best CV F1  : {dt_grid.best_score_:.4f}")
+dt_grid.best_estimator_.fit(X_train, y_train)
 tuned_dt = evaluate("Decision Tree (Tuned)",
                     dt_grid.best_estimator_, X_train, X_test, y_train, y_test)
 
@@ -247,9 +249,10 @@ svm_rand = RandomizedSearchCV(
     n_iter=10, cv=cv, scoring="f1",
     n_jobs=-1, random_state=RANDOM_STATE, verbose=1,
 )
-svm_rand.fit(X_train, y_train)
+svm_rand.fit(X_tune, y_tune)
 print(f"  Best params : {svm_rand.best_params_}")
 print(f"  Best CV F1  : {svm_rand.best_score_:.4f}")
+svm_rand.best_estimator_.fit(X_train, y_train)
 tuned_svm = evaluate("SVM (Tuned)",
                      svm_rand.best_estimator_, X_train, X_test, y_train, y_test)
 
@@ -271,9 +274,10 @@ rf_rand = RandomizedSearchCV(
     n_iter=15, cv=cv, scoring="f1",
     n_jobs=-1, random_state=RANDOM_STATE, verbose=1,
 )
-rf_rand.fit(X_train, y_train)
+rf_rand.fit(X_tune, y_tune)
 print(f"  Best params : {rf_rand.best_params_}")
 print(f"  Best CV F1  : {rf_rand.best_score_:.4f}")
+rf_rand.best_estimator_.fit(X_train, y_train)
 tuned_rf = evaluate("Random Forest (Tuned)",
                     rf_rand.best_estimator_, X_train, X_test, y_train, y_test)
 
@@ -293,9 +297,10 @@ nn_grid = GridSearchCV(
     },
     cv=cv, scoring="f1", n_jobs=-1, verbose=1,
 )
-nn_grid.fit(X_train, y_train)
+nn_grid.fit(X_tune, y_tune)
 print(f"  Best params : {nn_grid.best_params_}")
 print(f"  Best CV F1  : {nn_grid.best_score_:.4f}")
+nn_grid.best_estimator_.fit(X_train, y_train)
 tuned_nn = evaluate("Neural Network (Tuned)",
                     nn_grid.best_estimator_, X_train, X_test, y_train, y_test)
 

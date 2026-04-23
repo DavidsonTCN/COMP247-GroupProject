@@ -1,10 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Wed Apr 22 18:20:26 2026
-
-@author: edwin
-"""
-
 # ============================================================
 # ksi_shared.py
 # COMP 247 – KSI Group Project  |  Section 402  |  Group 5
@@ -20,6 +13,7 @@ Created on Wed Apr 22 18:20:26 2026
 
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 
 from sklearn.compose import ColumnTransformer
@@ -32,9 +26,10 @@ from sklearn.preprocessing import MinMaxScaler, OneHotEncoder
 # ============================================================
 # CONSTANTS  (change here → changes everywhere)
 # ============================================================
-RANDOM_STATE = 42
-TEST_SIZE    = 0.20
-CV_FOLDS     = 3
+RANDOM_STATE  = 42
+TEST_SIZE     = 0.20
+CV_FOLDS      = 3
+TUNE_SAMPLE   = 30_000   # rows used for GridSearch/RandomizedSearch tuning
 
 REQUIRED_COLUMNS = [
     "FATALITIES", "OCC_DOW", "OCC_MONTH", "OCC_YEAR", "OCC_HOUR",
@@ -186,6 +181,27 @@ def split_data(X: pd.DataFrame, y: pd.Series):
         random_state=RANDOM_STATE,
         stratify=y,
     )
+
+
+# ============================================================
+# TUNING SAMPLE  (used by Deliverable 3 GridSearch/RandomizedSearch)
+# ============================================================
+def get_tune_sample(X_train, y_train, n=TUNE_SAMPLE):
+    """
+    Return a stratified sample of the training data for use during
+    GridSearch / RandomizedSearch tuning ONLY.
+    The best params found on the sample are then refit on full X_train.
+    """
+    sample_size = min(n, len(X_train))
+    X_s, _, y_s, _ = train_test_split(
+        X_train, y_train,
+        train_size=sample_size,
+        random_state=RANDOM_STATE,
+        stratify=y_train,
+    )
+    print(f"[ksi_shared] Tuning sample: {X_s.shape[0]} rows "
+          f"(fatal rate: {y_s.mean():.4%})")
+    return X_s, y_s
 
 
 # ============================================================
