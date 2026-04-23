@@ -1,0 +1,560 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>KSI Collision Fatality Predictor</title>
+
+    <style>
+      :root{
+        --bg0:#070A10;
+        --bg1:#0B1020;
+        --card:#0E162C;
+        --card2:#0C1426;
+        --stroke:rgba(255,255,255,.10);
+        --stroke2:rgba(255,255,255,.14);
+        --text:#EAF0FF;
+        --muted:rgba(234,240,255,.70);
+        --muted2:rgba(234,240,255,.55);
+        --shadow: 0 18px 45px rgba(0,0,0,.55);
+        --shadow2: 0 8px 22px rgba(0,0,0,.35);
+        --yellow:#F7C948;
+        --yellow2:#F4B400;
+        --red:#FF3B3B;
+        --red2:#FF0F3A;
+        --ok:#2BE4A7;
+        --focus: rgba(247, 201, 72, .35);
+      }
+
+      *{ box-sizing:border-box; }
+      html,body{ height:100%; }
+      body{
+        margin:0;
+        color:var(--text);
+        font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+        background:
+          radial-gradient(900px 500px at 15% 10%, rgba(247,201,72,.12), transparent 60%),
+          radial-gradient(900px 600px at 88% 18%, rgba(255,15,58,.12), transparent 58%),
+          radial-gradient(1200px 900px at 45% 90%, rgba(90,108,255,.10), transparent 60%),
+          linear-gradient(180deg, var(--bg0), var(--bg1));
+      }
+
+      a{ color:inherit; }
+
+      .wrap{
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 44px 18px 64px;
+      }
+
+      .top{
+        display:flex;
+        align-items:flex-start;
+        justify-content:space-between;
+        gap: 18px;
+        margin-bottom: 22px;
+      }
+
+      .brand{
+        display:flex;
+        flex-direction:column;
+        gap: 6px;
+      }
+
+      .title{
+        font-size: 26px;
+        line-height: 1.15;
+        margin:0;
+        letter-spacing: .2px;
+      }
+
+      .subtitle{
+        margin:0;
+        color:var(--muted);
+        font-size: 14px;
+        line-height: 1.45;
+        max-width: 64ch;
+      }
+
+      .pillrow{
+        display:flex;
+        flex-wrap:wrap;
+        justify-content:flex-end;
+        gap: 8px;
+        margin-top: 2px;
+      }
+      .pill{
+        padding: 7px 10px;
+        border: 1px solid var(--stroke);
+        border-radius: 999px;
+        background: rgba(255,255,255,.04);
+        color: var(--muted);
+        font-size: 12px;
+        letter-spacing: .2px;
+        white-space: nowrap;
+      }
+
+      .grid{
+        display:grid;
+        grid-template-columns: 1.35fr .85fr;
+        gap: 16px;
+        align-items:start;
+      }
+
+      @media (max-width: 980px){
+        .top{ flex-direction:column; }
+        .pillrow{ justify-content:flex-start; }
+        .grid{ grid-template-columns: 1fr; }
+      }
+
+      .card{
+        background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+        border: 1px solid var(--stroke);
+        border-radius: 18px;
+        box-shadow: var(--shadow2);
+        overflow:hidden;
+      }
+
+      .card .hd{
+        padding: 16px 16px 12px;
+        border-bottom: 1px solid var(--stroke);
+        background: rgba(0,0,0,.14);
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        gap: 10px;
+      }
+
+      .card .hd h2{
+        margin:0;
+        font-size: 14px;
+        letter-spacing: .45px;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+
+      .card .bd{
+        padding: 16px;
+      }
+
+      .formgrid{
+        display:grid;
+        grid-template-columns: repeat(12, 1fr);
+        gap: 12px;
+      }
+
+      .field{
+        grid-column: span 6;
+        display:flex;
+        flex-direction:column;
+        gap: 7px;
+      }
+      .field.span4{ grid-column: span 4; }
+      .field.span6{ grid-column: span 6; }
+      .field.span12{ grid-column: span 12; }
+      .field label{
+        font-size: 12px;
+        color: var(--muted);
+        letter-spacing:.25px;
+      }
+
+      input, select{
+        width:100%;
+        padding: 11px 12px;
+        border-radius: 12px;
+        border: 1px solid var(--stroke2);
+        background: rgba(10,16,33,.55);
+        color: var(--text);
+        outline: none;
+        box-shadow: 0 0 0 0 rgba(0,0,0,0);
+        transition: border-color .15s ease, box-shadow .15s ease, transform .05s ease;
+      }
+      input::placeholder{ color: rgba(234,240,255,.42); }
+      input:focus, select:focus{
+        border-color: rgba(247,201,72,.55);
+        box-shadow: 0 0 0 4px var(--focus);
+      }
+      input:active, select:active{ transform: translateY(0.5px); }
+
+      .hint{
+        font-size: 12px;
+        margin-top: 8px;
+        color: var(--muted2);
+        line-height:1.45;
+      }
+
+      .actions{
+        display:flex;
+        flex-wrap:wrap;
+        gap: 10px;
+        align-items:center;
+        margin-top: 14px;
+      }
+      .btn{
+        display:inline-flex;
+        align-items:center;
+        justify-content:center;
+        gap: 10px;
+        padding: 11px 14px;
+        border-radius: 14px;
+        border: 1px solid rgba(247,201,72,.45);
+        background: linear-gradient(180deg, rgba(247,201,72,.18), rgba(247,201,72,.08));
+        color: var(--text);
+        cursor:pointer;
+        font-weight: 600;
+        letter-spacing: .2px;
+        box-shadow: 0 12px 28px rgba(0,0,0,.35);
+        transition: transform .06s ease, filter .15s ease, border-color .15s ease;
+      }
+      .btn:hover{ filter: brightness(1.08); border-color: rgba(247,201,72,.65); }
+      .btn:active{ transform: translateY(1px); }
+
+      .btn.secondary{
+        border-color: rgba(255,255,255,.16);
+        background: rgba(255,255,255,.04);
+        color: var(--muted);
+        box-shadow: none;
+      }
+
+      .mini{
+        margin-left:auto;
+        font-size: 12px;
+        color: var(--muted2);
+      }
+
+      .result{
+        border-radius: 18px;
+        padding: 16px;
+        border: 1px solid var(--stroke);
+        background: rgba(255,255,255,.03);
+        box-shadow: var(--shadow2);
+      }
+      .result.fatal{
+        border-color: rgba(255, 59, 59, .55);
+        background: radial-gradient(600px 260px at 20% 0%, rgba(255,59,59,.18), transparent 62%),
+                    rgba(255,255,255,.03);
+      }
+      .result.nonfatal{
+        border-color: rgba(247, 201, 72, .55);
+        background: radial-gradient(600px 260px at 20% 0%, rgba(247,201,72,.18), transparent 62%),
+                    rgba(255,255,255,.03);
+      }
+
+      .result .kicker{
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        gap: 10px;
+        margin-bottom: 10px;
+      }
+      .badge{
+        display:inline-flex;
+        align-items:center;
+        gap: 8px;
+        padding: 7px 10px;
+        border-radius: 999px;
+        border: 1px solid var(--stroke2);
+        background: rgba(0,0,0,.18);
+        font-weight: 700;
+        letter-spacing:.35px;
+        font-size: 12px;
+        text-transform: uppercase;
+      }
+      .badge.fatal{ border-color: rgba(255,59,59,.6); color: var(--red); }
+      .badge.nonfatal{ border-color: rgba(247,201,72,.6); color: var(--yellow); }
+
+      .prob{
+        font-size: 12px;
+        color: var(--muted);
+      }
+      .prob strong{ color: var(--text); }
+
+      .msg{
+        margin: 10px 0 0;
+        line-height: 1.55;
+        color: rgba(234,240,255,.88);
+      }
+
+      .error{
+        border-radius: 18px;
+        padding: 14px 16px;
+        border: 1px solid rgba(255, 59, 59, .5);
+        background: radial-gradient(700px 260px at 10% 0%, rgba(255,15,58,.16), transparent 60%),
+                    rgba(255,255,255,.03);
+        box-shadow: var(--shadow2);
+      }
+      .error h3{
+        margin: 0 0 6px;
+        font-size: 13px;
+        letter-spacing: .4px;
+        text-transform: uppercase;
+        color: var(--red);
+      }
+      .error p{
+        margin:0;
+        color: rgba(234,240,255,.85);
+        line-height:1.45;
+        font-size: 13px;
+        word-break: break-word;
+      }
+
+      .foot{
+        margin-top: 14px;
+        font-size: 12px;
+        color: var(--muted2);
+        line-height: 1.55;
+      }
+
+      .divider{
+        height: 1px;
+        background: var(--stroke);
+        margin: 12px 0;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="wrap">
+      <div class="top">
+        <div class="brand">
+          <h1 class="title">Collision Fatality Predictor</h1>
+          <p class="subtitle">
+            Enter collision context to estimate the probability of a fatal outcome. This interface submits to
+            <strong>/predict</strong> and returns the model output below.
+          </p>
+        </div>
+        <div class="pillrow" aria-label="app meta">
+          <div class="pill">Flask + Jinja</div>
+          <div class="pill">Dark theme</div>
+          <div class="pill">Red = fatal • Yellow = non-fatal</div>
+        </div>
+      </div>
+
+      <div class="grid">
+        <section class="card">
+          <div class="hd">
+            <h2>Prediction inputs</h2>
+            <div class="pill" title="All fields are required for best results">Model features</div>
+          </div>
+
+          <div class="bd">
+            <form method="POST" action="/predict" autocomplete="on">
+              <div class="formgrid">
+                <div class="field span4">
+                  <label for="OCC_MONTH">OCC_MONTH</label>
+                  <select id="OCC_MONTH" name="OCC_MONTH" required>
+                    {% for m in months %}
+                      <option value="{{ m }}" {% if form_data and form_data.get('OCC_MONTH') == m %}selected{% endif %}>{{ m }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+
+                <div class="field span4">
+                  <label for="OCC_DOW">OCC_DOW</label>
+                  <select id="OCC_DOW" name="OCC_DOW" required>
+                    {% for d in days %}
+                      <option value="{{ d }}" {% if form_data and form_data.get('OCC_DOW') == d %}selected{% endif %}>{{ d }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+
+                <div class="field span4">
+                  <label for="DIVISION">DIVISION</label>
+                  <select id="DIVISION" name="DIVISION" required>
+                    {% for div in divisions %}
+                      <option value="{{ div }}" {% if form_data and form_data.get('DIVISION') == div %}selected{% endif %}>{{ div }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+
+                <div class="field span4">
+                  <label for="OCC_YEAR">OCC_YEAR</label>
+                  <input
+                    id="OCC_YEAR"
+                    name="OCC_YEAR"
+                    type="number"
+                    inputmode="numeric"
+                    step="1"
+                    min="1900"
+                    max="2100"
+                    required
+                    placeholder="e.g., 2024"
+                    value="{% if form_data and form_data.get('OCC_YEAR') is not none %}{{ form_data.get('OCC_YEAR') }}{% endif %}"
+                  />
+                </div>
+
+                <div class="field span4">
+                  <label for="OCC_HOUR">OCC_HOUR (0–23)</label>
+                  <input
+                    id="OCC_HOUR"
+                    name="OCC_HOUR"
+                    type="number"
+                    inputmode="numeric"
+                    step="1"
+                    min="0"
+                    max="23"
+                    required
+                    placeholder="e.g., 17"
+                    value="{% if form_data and form_data.get('OCC_HOUR') is not none %}{{ form_data.get('OCC_HOUR') }}{% endif %}"
+                  />
+                </div>
+
+                <div class="field span4">
+                  <label for="HOOD_158">HOOD_158 (1–158)</label>
+                  <input
+                    id="HOOD_158"
+                    name="HOOD_158"
+                    type="number"
+                    inputmode="numeric"
+                    step="1"
+                    min="1"
+                    max="158"
+                    required
+                    placeholder="e.g., 42"
+                    value="{% if form_data and form_data.get('HOOD_158') is not none %}{{ form_data.get('HOOD_158') }}{% endif %}"
+                  />
+                </div>
+
+                <div class="field span6">
+                  <label for="LONG_WGS84">LONG_WGS84</label>
+                  <input
+                    id="LONG_WGS84"
+                    name="LONG_WGS84"
+                    type="number"
+                    inputmode="decimal"
+                    step="any"
+                    required
+                    placeholder="e.g., -79.3832"
+                    value="{% if form_data and form_data.get('LONG_WGS84') is not none %}{{ form_data.get('LONG_WGS84') }}{% endif %}"
+                  />
+                </div>
+
+                <div class="field span6">
+                  <label for="LAT_WGS84">LAT_WGS84</label>
+                  <input
+                    id="LAT_WGS84"
+                    name="LAT_WGS84"
+                    type="number"
+                    inputmode="decimal"
+                    step="any"
+                    required
+                    placeholder="e.g., 43.6532"
+                    value="{% if form_data and form_data.get('LAT_WGS84') is not none %}{{ form_data.get('LAT_WGS84') }}{% endif %}"
+                  />
+                </div>
+
+                <div class="field span4">
+                  <label for="AUTOMOBILE">AUTOMOBILE</label>
+                  <select id="AUTOMOBILE" name="AUTOMOBILE" required>
+                    {% for v in yes_no %}
+                      <option value="{{ v }}" {% if form_data and form_data.get('AUTOMOBILE') == v %}selected{% endif %}>{{ v }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+
+                <div class="field span4">
+                  <label for="MOTORCYCLE">MOTORCYCLE</label>
+                  <select id="MOTORCYCLE" name="MOTORCYCLE" required>
+                    {% for v in yes_no %}
+                      <option value="{{ v }}" {% if form_data and form_data.get('MOTORCYCLE') == v %}selected{% endif %}>{{ v }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+
+                <div class="field span4">
+                  <label for="PASSENGER">PASSENGER</label>
+                  <select id="PASSENGER" name="PASSENGER" required>
+                    {% for v in yes_no %}
+                      <option value="{{ v }}" {% if form_data and form_data.get('PASSENGER') == v %}selected{% endif %}>{{ v }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+
+                <div class="field span4">
+                  <label for="BICYCLE">BICYCLE</label>
+                  <select id="BICYCLE" name="BICYCLE" required>
+                    {% for v in yes_no %}
+                      <option value="{{ v }}" {% if form_data and form_data.get('BICYCLE') == v %}selected{% endif %}>{{ v }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+
+                <div class="field span4">
+                  <label for="PEDESTRIAN">PEDESTRIAN</label>
+                  <select id="PEDESTRIAN" name="PEDESTRIAN" required>
+                    {% for v in yes_no %}
+                      <option value="{{ v }}" {% if form_data and form_data.get('PEDESTRIAN') == v %}selected{% endif %}>{{ v }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+
+                <div class="field span12">
+                  <div class="actions">
+                    <button class="btn" type="submit">Run prediction</button>
+                    <button class="btn secondary" type="reset">Reset</button>
+                    <div class="mini">Tip: coordinates accept decimals (WGS84).</div>
+                  </div>
+                  <div class="hint">
+                    The model will compute <strong>IS_WEEKEND</strong> automatically from <strong>OCC_DOW</strong>.
+                  </div>
+                </div>
+              </div>
+            </form>
+          </div>
+        </section>
+
+        <aside class="card">
+          <div class="hd">
+            <h2>Output</h2>
+            <div class="pill">Prediction</div>
+          </div>
+
+          <div class="bd">
+            {% if error %}
+              <div class="error" role="alert" aria-live="polite">
+                <h3>Prediction failed</h3>
+                <p>{{ error }}</p>
+              </div>
+              <div class="divider"></div>
+            {% endif %}
+
+            {% if result %}
+              <div
+                class="result {% if result.prediction == 1 %}fatal{% else %}nonfatal{% endif %}"
+                aria-live="polite"
+              >
+                <div class="kicker">
+                  <span class="badge {% if result.prediction == 1 %}fatal{% else %}nonfatal{% endif %}">
+                    {{ result.label }}
+                  </span>
+                  <div class="prob">
+                    Probability: <strong>{{ result.probability }}%</strong>
+                  </div>
+                </div>
+                <p class="msg">{{ result.message }}</p>
+              </div>
+            {% else %}
+              <div class="result" aria-live="polite">
+                <div class="kicker">
+                  <span class="badge">Awaiting input</span>
+                  <div class="prob">Probability: <strong>—</strong></div>
+                </div>
+                <p class="msg">
+                  Submit the form to see the model’s label, message, and probability. Fatal predictions are highlighted in
+                  <strong style="color: var(--red);">red</strong>; non-fatal predictions in
+                  <strong style="color: var(--yellow);">yellow</strong>.
+                </p>
+              </div>
+            {% endif %}
+
+            <div class="foot">
+              <div class="divider"></div>
+              <div><strong>Note:</strong> This is a statistical prediction, not a guarantee.</div>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </body>
+</html>
+
